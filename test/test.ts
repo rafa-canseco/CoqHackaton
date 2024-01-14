@@ -23,7 +23,7 @@ describe("CardGame", function () {
     });
     const tokenAddress = "0x420FcA0121DC28039145009570975747295f2329";
     const tokenContract = await ethers.getContractAt("IERC20", tokenAddress);
-    const transferAmount = ethers.parseUnits("200", 18); 
+    const transferAmount = ethers.parseUnits("200000000", 18); 
     const signer = await ethers.provider.getSigner(addressImpersonator);
     await tokenContract.connect(signer).transfer(owner.address, transferAmount);
     await tokenContract.connect(signer).transfer(addr1.address, transferAmount);
@@ -41,7 +41,7 @@ describe("CardGame", function () {
     expect( await cardGame.gameStarted()).to.equal(false)
   });
   it("Should not let enter player with amount less than minAmount", async function () {
-    const entryAmount = ethers.parseUnits("100", 18); // 100 tokens
+    const entryAmount = ethers.parseUnits("200000000", 18); 
     const signer = await ethers.provider.getSigner(addressImpersonator)
     const tokenAddress = "0x420FcA0121DC28039145009570975747295f2329"
     const tokenContract = await ethers.getContractAt("IERC20", tokenAddress);
@@ -71,7 +71,44 @@ it("should not let enter a player twice",async function () {
     const cardGameAddress = await cardGame.getAddress();
     await tokenContract.connect(signer).approve(cardGameAddress, entryAmount);
     await cardGame.connect(signer).enterGame(entryAmount);
-    await expect(cardGame.connect(signer).enterGame(entryAmount)).to.be.reverted;
+    await expect(cardGame.connect(signer).enterGame(entryAmount))
+        .to.be.revertedWith("Player already entered");
 })
+it("it should let enter 4 players",async function () {
+  const entryAmount = ethers.parseUnits("200000000",18);
+  const signer = await ethers.provider.getSigner(addressImpersonator)
+  const tokenAddress = "0x420FcA0121DC28039145009570975747295f2329"
+  const tokenContract = await ethers.getContractAt("IERC20", tokenAddress);
+  const cardGameAddress = await cardGame.getAddress();
+  await tokenContract.connect(signer).approve(cardGameAddress, entryAmount);
+  await tokenContract.connect(addr1).approve(cardGame,entryAmount)
+  await tokenContract.connect(addr2).approve(cardGame,entryAmount)
+  await tokenContract.connect(addr3).approve(cardGame,entryAmount)
+  await cardGame.connect(signer).enterGame(entryAmount);
+  await cardGame.connect(addr1).enterGame(entryAmount);
+  await cardGame.connect(addr2).enterGame(entryAmount);
+  await cardGame.connect(addr3).enterGame(entryAmount);
+  const playerCount = await cardGame.getPlayerListLength();
+  expect(playerCount).to.equal(4);
+})
+it("it should start game at 4 people in",async function () {
+  const entryAmount = ethers.parseUnits("200000000",18);
+  const signer = await ethers.provider.getSigner(addressImpersonator)
+  const tokenAddress = "0x420FcA0121DC28039145009570975747295f2329"
+  const tokenContract = await ethers.getContractAt("IERC20", tokenAddress);
+  const cardGameAddress = await cardGame.getAddress();
+  await tokenContract.connect(signer).approve(cardGameAddress, entryAmount);
+  await tokenContract.connect(addr1).approve(cardGame,entryAmount)
+  await tokenContract.connect(addr2).approve(cardGame,entryAmount)
+  await tokenContract.connect(addr3).approve(cardGame,entryAmount)
+  await cardGame.connect(signer).enterGame(entryAmount);
+  await cardGame.connect(addr1).enterGame(entryAmount);
+  await cardGame.connect(addr2).enterGame(entryAmount);
+  await cardGame.connect(addr3).enterGame(entryAmount);
+  const isGameStarted = await cardGame.gameStarted()
+  expect(isGameStarted).to.be.true;
+})
+
+
 
 });

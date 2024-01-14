@@ -69,11 +69,13 @@ contract CardGame is VRFConsumerBaseV2, Ownable {
     }
 
     receive() external payable {}
+    
+
 
     // Allows a player to enter the game by transferring the required token amount
     function enterGame(uint256 amount) public payable {
         require(!gameStarted, "Game has already started");
-        require(amount >= minimumEntry, "Must send at least 100,000,000 tokens to enter");
+        require(amount >= minimumEntry, "Must send at least 200,000,000 tokens to enter");
         require(!horses[msg.sender].isPlaying, "Player already entered");
         require(playerList.length < 4, "The game is full");
         require(token.transferFrom(msg.sender, address(this), amount), "Token transfer failed");
@@ -82,10 +84,13 @@ contract CardGame is VRFConsumerBaseV2, Ownable {
         horses[msg.sender] = Horse({position: 0, isPlaying: true});
         playerSuits[msg.sender] = Suit(playerList.length);
         playerList.push(msg.sender);
+        if (playerList.length == 4) {
+            gameStarted = true;
+        }
     }
 
    // Starts the game if there are 4 players and the game hasn't started yet
-   function startGame() public {
+   function startGame() internal {
         require(playerList.length == 4, "Must have 4 players to start");
         require(!gameStarted, "Game is already in progress");
 
@@ -96,7 +101,6 @@ contract CardGame is VRFConsumerBaseV2, Ownable {
    // Requests randomness for shuffling cards and assigns request IDs
 function askShuffleCards() private {
     require(gameStarted, "Game has not started");
-    require(horses[msg.sender].isPlaying, "You are not in the game");
 
     // Check if suit randomness request has been made
     if (suitRequestId == 0) {
