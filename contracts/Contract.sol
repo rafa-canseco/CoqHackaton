@@ -38,7 +38,9 @@ contract CardGame is VRFConsumerBaseV2, Ownable {
     //State Variables
     uint256 public pot; // Total pot of the game
     bool public gameStarted; // Indicates if the game has started
-    uint256 public tax = 1; // Tax rate of 1%
+    uint256 public tax = 12; // Tax rate of 12% to be burned
+    uint256 public developentTax = 3; //tax for continous development
+    address public dev_wallet;
     uint256 private suitRequestId; // Request ID for suit randomness
     uint256 private numberRequestId; // Request ID for number randomness
     uint256 minimumEntry = 100000000; // MinAmount to play
@@ -66,6 +68,7 @@ contract CardGame is VRFConsumerBaseV2, Ownable {
         playerList = new address[](0);
         token = IERC20(0x420FcA0121DC28039145009570975747295f2329);
         COORDINATOR = VRFCoordinatorV2Interface(vrfCoordinator);
+        dev_wallet = initialOwner;
     }
 
     receive() external payable {}
@@ -75,7 +78,7 @@ contract CardGame is VRFConsumerBaseV2, Ownable {
     // Allows a player to enter the game by transferring the required token amount
     function enterGame(uint256 amount) public payable {
         require(!gameStarted, "Game has already started");
-        require(amount >= minimumEntry, "Must send at least 200,000,000 tokens to enter");
+        require(amount >= minimumEntry, "Must send at least 1git 00,000,000 tokens to enter");
         require(!horses[msg.sender].isPlaying, "Player already entered");
         require(playerList.length < 4, "The game is full");
         require(token.transferFrom(msg.sender, address(this), amount), "Token transfer failed");
@@ -238,7 +241,8 @@ function getPlayerBySuit(Suit suit) private view returns (address) {
         gameStarted = false;
         uint256 prizeBeforeTax = pot;
         uint256 taxAmount = (prizeBeforeTax * tax) / 100;
-        uint256 prize = prizeBeforeTax - taxAmount;
+        uint256 devTax = (prizeBeforeTax * developentTax) / 100;
+        uint256 prize = prizeBeforeTax - taxAmount - devTax;
         pot = 0;
 
         // Reset player positions for the next game
@@ -254,11 +258,14 @@ function getPlayerBySuit(Suit suit) private view returns (address) {
         // Transfer the remaining prize to the winner
         require(token.transfer(winner, prize), "Prize transfer failed");
 
+        // Transfer the dev tax to the dev wallet
+        require(token.transfer(dev_wallet, devTax), "Prize transfer failed");
+
         emit GameEnded(winner, prize);
     }
 
     // Allows the owner to set a new tax rate
-    function setTax(uint256 newTax) public onlyOwner {
+    function setTaxToBurn(uint256 newTax) public onlyOwner {
         tax = newTax;
     }
 
