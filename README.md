@@ -1,6 +1,8 @@
 
 # CardGame Smart Contract
 
+address on testnet: 0x90A8F55f57051443104A4289FA7E4BB71ca55e45
+
 ## Description
 
 A Solidity smart contract for a card game that leverages Chainlink VRF for randomness and OpenZeppelin contracts for secure ERC20 token betting and access control. The contract includes a dual taxation system where a portion of the game pot is taxed, with part being burned and part sent to the developer's wallet to fund ongoing development.
