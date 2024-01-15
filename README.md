@@ -1,4 +1,4 @@
-```markdown
+
 # CardGame Smart Contract
 
 ## Description
@@ -54,6 +54,3 @@ npm install @chainlink/contracts@0.4.0
 ## License
 
 This project is licensed under the MIT License.
-```
-
-This revised README explains the updated taxation system in a serious tone, consistent with the rest of the document.
